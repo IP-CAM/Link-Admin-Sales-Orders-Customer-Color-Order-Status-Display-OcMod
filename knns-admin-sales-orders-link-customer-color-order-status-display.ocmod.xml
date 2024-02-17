@@ -6,7 +6,6 @@
 	<version>1.0.0</version>
 	<author><![CDATA[<font color="#7F458C"><b>kanenas.net (aka Nikolas Branis)</b></font> - nbran@kanenas.net]]></author>
 	<link>https://kanenas.net/</link>
-
 	<file path="admin/model/sale/order.php" error="log">
 		<operation error="skip">
 			<search>
@@ -94,7 +93,6 @@
           {% else %}
               {% set status_color  = '#dedede' %}
           {% endif %}
-
                   <td class="text-left" style="background-color: {{ status_color }}; color: #000000; font-weight: bold;">{{ order.order_status }}</td>
 			]]></add>
 		</operation>
