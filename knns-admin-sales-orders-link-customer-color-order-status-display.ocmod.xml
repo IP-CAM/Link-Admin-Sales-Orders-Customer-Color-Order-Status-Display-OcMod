@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<modification>
+	<id><![CDATA[Link Customer, Color Order Status and Display Payment Method in Admin > Sales > Orders]]></id>
+	<name><![CDATA[Link Customer, Color Order Status and Display Payment Method in Admin > Sales > Orders]]></name>
+	<code>knns-admin-sales-orders-link-customer-color-order-status-display-payment-method-v3039</code>
+	<version>1.0.0</version>
+	<author><![CDATA[<font color="#7F458C"><b>kanenas.net (aka Nikolas Branis)</b></font> - nbran@kanenas.net]]></author>
+	<link>https://kanenas.net/</link>
+
+	<file path="admin/model/sale/order.php" error="log">
+		<operation error="skip">
+			<search>
+				<![CDATA[$sql = "SELECT o.order_id, CONCAT(o.firstname, ' ', o.lastname) AS customer, (SELECT os.name FROM " . DB_PREFIX . "order_status os WHERE os.order_status_id = o.order_status_id AND os.language_id = '" . (int)$this->config->get('config_language_id') . "') AS order_status, o.shipping_code, o.total, o.currency_code, o.currency_value, o.date_added, o.date_modified FROM `" . DB_PREFIX . "order` o";
+				]]>
+			</search>
+			<add position="replace"><![CDATA[		$sql = "SELECT o.order_id, o.order_status_id, CONCAT(o.firstname, ' ', o.lastname) AS customer, o.customer_id, (SELECT os.name FROM " . DB_PREFIX . "order_status os WHERE os.order_status_id = o.order_status_id AND os.language_id = '" . (int)$this->config->get('config_language_id') . "') AS order_status, o.shipping_code, o.total, o.currency_code, o.currency_value, o.payment_method, o.date_added, o.date_modified FROM `" . DB_PREFIX . "order` o";]]></add>
+		</operation>
+	</file>
+	<file path="admin/controller/sale/order.php" error="log">
+		<operation error="skip">
+			<search><![CDATA[$data['orders'][] = array(]]></search>
+			<add position="before" index="1"><![CDATA[
+		if (intval($result['customer_id'] == '0')) {
+			$customer_url = '';
+		} else {
+			$customer_url = $this->url->link('customer/customer/edit', 'user_token=' . $this->session->data['user_token'] . '&customer_id='. intval($result['customer_id']) . $url, true);
+		}
+			]]></add>
+		</operation>
+		<operation error="skip">
+			<search><![CDATA['customer'      => $result['customer'],]]></search>
+			<add position="before"><![CDATA[
+			'customer_id'      => $result['customer_id'],
+			'customer_href'    => $customer_url,
+			]]></add>
+		</operation>
+		<operation error="skip">
+			<search><![CDATA['order_status'  => $result['order_status'] ? $result['order_status'] : $this->language->get('text_missing'),]]></search>
+			<add position="after"><![CDATA[				'order_status_id'        => $result['order_status_id'],]]></add>
+		</operation>
+		<operation error="skip">
+			<search><![CDATA['total'         => $this->currency->format($result['total'], $result['currency_code'], $result['currency_value']),]]></search>
+			<add position="after"><![CDATA[
+				'payment_method'        => $result['payment_method'],
+			]]></add>
+		</operation>
+	</file>
+	<file path="admin/view/template/sale/order_list.twig" error="log">
+		<operation error="skip">
+			<search><![CDATA[<td class="text-left">{{ order.customer }}</td>]]></search>
+			<add position="replace"><![CDATA[
+                  <td class="text-left">
+                    {% if order.customer_href == '' %} 
+                      {{ order.customer }}
+                    {% else %}
+                      <a href="{{ order.customer_href }}" title="{{ order.customer }}">{{ order.customer }}</a>
+                    {% endif %}
+                  </td>
+				]]></add>
+		</operation>
+		<operation error="skip">
+			<search><![CDATA[<td class="text-left">{{ order.order_status }}</td>]]></search>
+			<add position="replace"><![CDATA[
+          {% if order.order_status_id == 0 %}
+              {% set status_color  = '#dedede' %}  {# Missing Orders #}
+          {% elseif order.order_status_id == 7 %}
+              {% set status_color  = '#ff0000' %}  {# Canceled #}
+          {% elseif order.order_status_id == 9 %}
+              {% set status_color  = '#ff8080' %}  {# Canceled Reversal #}
+          {% elseif order.order_status_id == 13 %}
+              {% set status_color  = '#bc8b8b' %}  {# Chargeback #}
+          {% elseif order.order_status_id == 5 %}
+              {% set status_color  = '#256125' %}  {# Complete #}
+          {% elseif order.order_status_id == 8 %}
+              {% set status_color  = '#b30000' %}  {# Denied #}
+          {% elseif order.order_status_id == 14 %}
+              {% set status_color  = '#660000' %}  {# Expired #}
+          {% elseif order.order_status_id == 10 %}
+              {% set status_color  = '#000000' %}  {# Failed #}
+          {% elseif order.order_status_id == 1 %}
+              {% set status_color  = '#dedede' %}  {# Pending #}
+          {% elseif order.order_status_id == 15 %}
+              {% set status_color  = '#ffccff' %}  {# Processed #}
+          {% elseif order.order_status_id == 2 %}
+              {% set status_color  = '#ff0096' %}  {# Processing #}
+          {% elseif order.order_status_id == 11 %}
+              {% set status_color  = '#ff6600' %}  {# Refunded #}
+          {% elseif order.order_status_id == 12 %}
+              {% set status_color  = '#ff6c00' %}  {# Reversed #}
+          {% elseif order.order_status_id == 3 %}
+              {% set status_color  = '#80b580' %}  {# Shipped #}
+          {% elseif order.order_status_id == 16 %}
+              {% set status_color  = '#803300' %}  {# Voided #}
+          {% elseif order.order_status_id == 17 %}
+              {% set status_color  = '#808080' %}  {# Keramikos Store #}
+          {% elseif order.order_status_id == 18 %}
+              {% set status_color  = '#808080' %}  {# ACS-Keramikos #}
+          {% elseif order.order_status_id == 19 %}
+              {% set status_color  = '#0000ff' %}  {# Salamina Store #}
+          {% elseif order.order_status_id == 20 %}
+              {% set status_color  = '#0000ff' %}  {# ACS-Salamina #}
+          {% else %}
+              {% set status_color  = '#dedede' %}
+          {% endif %}
+
+                  <td class="text-left" style="background-color: {{ status_color }}; color: #000000; font-weight: bold;">{{ order.order_status }}</td>
+			]]></add>
+		</operation>
+		<operation error="skip">
+			<search><![CDATA[<td class="text-left">{% if sort == 'o.date_added' %} <a href="{{ sort_date_added }}" class="{{ order|lower }}">{{ column_date_added }}</a> {% else %} <a href="{{ sort_date_added }}">{{ column_date_added }}</a> {% endif %}</td>]]></search>
+			<add position="before"><![CDATA[
+                    <td class="text-left">{{ payment_method|trim(':', 'right') }}</td>
+			]]></add>
+		</operation>
+		<operation error="skip">
+			<search><![CDATA[<td class="text-right">{{ order.total }}</td>]]></search>
+			<add position="after"><![CDATA[
+                  <td class="left">{{ order.payment_method }}</td>
+			]]></add>
+		</operation>
+		<operation error="skip">
+			<search><![CDATA[<td class="text-center" colspan="8">{{ text_no_results }}</td>]]></search>
+			<add position="replace"><![CDATA[                  <td class="text-center" colspan="11">{{ text_no_results }}</td>]]></add>
+		</operation>
+	</file>
+</modification>
