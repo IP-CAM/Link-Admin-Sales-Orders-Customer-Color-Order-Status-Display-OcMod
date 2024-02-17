@@ -91,14 +91,6 @@
               {% set status_color  = '#80b580' %}  {# Shipped #}
           {% elseif order.order_status_id == 16 %}
               {% set status_color  = '#803300' %}  {# Voided #}
-          {% elseif order.order_status_id == 17 %}
-              {% set status_color  = '#808080' %}  {# Keramikos Store #}
-          {% elseif order.order_status_id == 18 %}
-              {% set status_color  = '#808080' %}  {# ACS-Keramikos #}
-          {% elseif order.order_status_id == 19 %}
-              {% set status_color  = '#0000ff' %}  {# Salamina Store #}
-          {% elseif order.order_status_id == 20 %}
-              {% set status_color  = '#0000ff' %}  {# ACS-Salamina #}
           {% else %}
               {% set status_color  = '#dedede' %}
           {% endif %}
